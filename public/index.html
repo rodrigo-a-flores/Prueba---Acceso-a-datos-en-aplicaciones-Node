@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" />
+    
+</head>
+
+<body class="p-5">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <script src="https://momentjs.com/downloads/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            background: #e5e1dd;
+        }
+    
+        form {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+    </style>
+
+    <h1 class="text-center" style="font-size: 60px">&#127979;</h1>
+    <h2 class="text-center pb-0 mb-0">Banco Solar C.A</h2>
+    <hr class="w-25 pb-1" />
+    <div class="row m-auto px-5">
+        <div class="col-12 col-sm-5">
+            <form id="formUser" method="post" action="/usuarios">
+                <div class="form-group text-center">
+                    <h5>Agregar Nuevo Usuario</h5>
+                    <hr class="bg-white w-50" />
+                    <div class="d-flex align-items-center justify-content-center">
+                        Nombre:
+                        <input class="form-control d-inline mx-3" id="nombre" name="nombre"/>
+                        Balance:
+                        <input class="form-control d-inline mx-3" id="balance" name="balance"/>
+                        <button type="submit" class="btn btn-danger">Agregar</button>
+                    </div>
+                </div>
+            </form>
+            <br />
+        </div>
+
+        <div class="col-12 col-sm-7">
+            <form id="formTransfer" method="post" action="/transferencias">
+                <div class="form-group text-center">
+                    <h5>Realizar una Transferencia</h5>
+                    <hr class="bg-white w-50" />
+                    <div class="d-flex align-items-center justify-content-center flex-wrap">
+                        <div class="mr-2">
+                            Emisor:
+                            <select id="emisor" name="emisor" class="form-control mx-2 w-auto d-inline"></select>
+                        </div>
+                        <div class="mr-3">
+                            Receptor:
+                            <select id="receptor" name="receptor" class="form-control mx-2 w-auto d-inline"></select>
+                        </div>
+                        <div class="mr-3">
+                            Monto:
+                            <input id="monto" name="monto" type="text" class="form-control mx-2 w-auto d-inline"/>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Realizar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-12 row mt-3 mx-0 px-0">
+            <div class="col-12 col-sm-5 text-center">
+                <h5>Tabla de usuarios</h5>
+                <table  class="table bg-light">
+                    <thead class="bg-danger text-white">
+                        <th>Nombre</th>
+                        <th>Balance</th>
+                        <th>Acciones</th>
+                    </thead>
+                    <tbody class="usuarios">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-12 col-sm-7 text-center">
+                <h5>Tabla de Transferencias</h5>
+                <table class="table bg-light">
+                    <thead class="bg-danger text-white">
+                        <th>Fecha</th>
+                        <th>Emisor</th>
+                        <th>Receptor</th>
+                        <th>Monto</th>
+                    </thead>
+                    <tbody class="transferencias">                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog text-dark" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-2">Nombre</div>
+                        <div class="col-10">
+                            <input id="nombreEdit" type="text" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2">Balance</div>
+                        <div class="col-10">
+                            <input id="balanceEdit" type="text" class="form-control" />
+                        </div>
+                    </div>
+
+                    <button class="btn btn-danger" id="editButton">Editar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        
+        const setInfoModal = (nombre, balance, id) => {
+            $("#nombreEdit").val(nombre);
+            $("#balanceEdit").val(balance);
+            $("#editButton").attr("onclick", `editUsuario('${id}')`);
+
+            $("#exampleModal").modal("show");
+        };
+
+        const getUsuarios = async () => {
+            try {
+                const response = await fetch("http://localhost:1234/usuarios");
+                const data = await response.json();
+                $(".usuarios").html("");
+                $("#emisor").html("");
+                $("#receptor").html("");
+                $.each(data, (index, {nombre, balance, id}) => {
+                    $(".usuarios").append(`
+                      <tr>
+                        <td>${nombre}</td>
+                        <td>${balance}</td>
+                        <td>
+                          <button
+                            class="btn btn-warning mr-2"
+                            data-toggle="modal"
+                            data-target="#exampleModal"
+                            onclick="setInfoModal('${nombre}', '${balance}', '${id}')"
+                          >
+                          Editar
+                          </button>
+                            <button class="btn btn-danger" onclick="eliminarUsuario('${id}')">Eliminar</button>
+                        </td>
+                      </tr>
+                 `);                      
+                    $("#emisor").append(`<option value="${id}">${nombre}</option>`);
+                    $("#receptor").append(`<option value="${id}">${nombre}</option>`);
+                });
+            } catch (e) {
+                console.error("Error al obtener usuarios:", e);
+                alert("Algo salió mal al obtener usuarios");
+            }
+        };
+
+        const getTransferencias = async () => {
+            try {
+                const { data } = await axios.get("http://localhost:1234/transferencias");
+                $(".transferencias").html("");
+
+                for (const transferencia of data) {
+                    fecha = formatDate(transferencia.fecha)
+                    $(".transferencias").append(`
+                        <tr>
+                            <td>${fecha}</td>
+                            <td>${transferencia.emisor}</td>
+                            <td>${transferencia.receptor}</td>
+                            <td>${transferencia.monto}</td>
+                        </tr>
+                    `); 
+                }
+            } catch (e) {
+                console.error("Error al obtener transferencias:", e);
+                alert("Algo salió mal al obtener transferencias");
+            }
+        };
+
+        getUsuarios();
+        getTransferencias();
+    
+        const editUsuario = async (id) => {
+            const nombre = $("#nombreEdit").val();
+            const balance = $("#balanceEdit").val();
+            try {
+                const { data } = await axios.put(
+                    `http://localhost:1234/usuarios/${id}`,
+                    {
+                        nombre,
+                        balance
+                    }
+                );
+                $("#exampleModal").modal("hide");
+                getUsuarios();                
+            } catch (e) {
+                alert("Algo salió mal..." + e);
+            }
+        };        
+
+        const eliminarUsuario = async (id) => {
+            try {
+                const { data } = await axios.delete(`http://localhost:1234/usuarios/${id}`);
+                getUsuarios();
+            } catch (e) {
+                alert("El usuario tiene historial, no se puede eliminar");
+            }            
+        };   
+        
+        $("#formUser").submit(async (e) => {
+            e.preventDefault();
+            let nombre = $("#formUser #nombre").val();
+            let balance = Number($("#formUser #balance").val());
+            try {
+                const response = await fetch("http://localhost:1234/usuarios", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        nombre,
+                        balance
+                    })
+                });
+                $("#formUser #nombre").val("");
+                $("#formUser #balance").val("");
+                getUsuarios();
+            } catch (e) {
+                alert("Algo salió mal ..." + e);
+            }
+        });
+
+        $("#formTransfer").submit(async (e) => {
+            e.preventDefault();
+            let emisor = $("#emisor").val();
+            let receptor = $("#receptor").val();
+            let monto = Number($("#monto").val());
+            try {
+                const response = await fetch("http://localhost:1234/transferencias", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        emisor: emisor,
+                        receptor: receptor,
+                        monto: monto
+                    })
+                });
+                $("#emisor").val("");
+                $("#receptor").val("");
+                $("#monto").val("");                
+                getTransferencias();                
+            } catch (e) {
+                console.log(e);
+                alert("Algo salió mal..." + e);
+            }
+        });        
+    
+        const formatDate = (date) => {
+            const dateFormat = moment(date).format("L");
+            const timeFormat = moment(date).format("LTS");
+            return `${dateFormat} ${timeFormat}`;
+        };
+    </script>
+</body>
+</html>
